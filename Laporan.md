@@ -8,7 +8,7 @@ Sistem rekomendasi merupakan sistem yang menyaring informasi dengan memprediksi 
 merekomendasikan barang kepada konsumen sesuai dengan kebutuhan dan seleranya. Sistem rekomendasi menggunakan dua metode untuk menyaring informasi - Content-Based dan
 Collaborative (Rana & Deeba, 2019). Content-Based Filtering mempelajari konten item seperti produk untuk mengkategorikan ke pengguna yang sesuai berdasarkan preferensi dari profil pengguna. Sedangkan Collaborative Filtering akan mencocokkan preferensi antara pengguna lainnya (Kurmashov et al., 2015).
 
-Dalam proyek ini, sistem rekomendasi buku dibuat dengan menggunakan dua pendekatan utama, yaitu Collaborative Filtering dengan metode Singular Value Decomposition (SVD) dan Content-Based Filtering dengan teknik TF-IDF Vectorizer. Kedua pendekatan ini digunakan untuk memberikan rekomendasi personal yang akurat berdasarkan data historis pengguna dan kesamaan konten buku.
+Dalam proyek ini, sistem rekomendasi buku dibuat dengan menggunakan dua pendekatan utama, yaitu Collaborative Filtering dengan metode Singular Value Decomposition (SVD) dan Content-Based Filtering dengan teknik Cosine Similarity. Kedua pendekatan ini digunakan untuk memberikan rekomendasi personal yang akurat berdasarkan data historis pengguna dan kesamaan konten buku.
 
 **Mengapa masalah ini harus diselesaikan?**
 - Meningkatkan Kepuasan Pengguna
@@ -39,23 +39,21 @@ Dalam proyek ini, sistem rekomendasi buku dibuat dengan menggunakan dua pendekat
 - Mengembangkan sistem rekomendasi buku yang dapat memberikan rekomendasi personal bagi pengguna berdasarkan data historis dan kesamaan buku.
 - Membantu penerbit dan penjual buku untuk meningkatkan penjualan dengan menyarankan buku yang lebih mungkin menarik minat pengguna.
 
-Semua poin di atas harus diuraikan dengan jelas. Anda bebas menuliskan berapa pernyataan masalah dan juga goals yang diinginkan.
-
 ### Solution Statements
 - Collaborative Filtering menggunakan Singular Value Decomposition (SVD).
 
   Pendekatan ini memanfaatkan data historis berupa rating pengguna terhadap buku. Dengan SVD, matriks utility (rating pengguna terhadap buku) direduksi menjadi matriks yang lebih kecil, sehingga memungkinkan prediksi rating untuk buku-buku yang belum dinilai pengguna. Rekomendasi diberikan berdasarkan buku dengan prediksi rating tertinggi.
 
-- Content-Based Filtering menggunakan TF-IDF Vectorizer.
+- Content-Based Filtering menggunakan Cosine Similarity.
 
-  Pendekatan ini fokus pada fitur konten buku. Dengan menggunakan TF-IDF Vectorizer, kesamaan antar buku dihitung berdasarkan representasi teks, sehingga sistem dapat merekomendasikan buku yang mirip dengan buku yang disukai pengguna.
+  Pendekatan ini digunakan untuk merekomendasikan buku berdasarkan kemiripan konten antar buku. Fitur dari setiap buku dianalisis dan direpresentasikan menggunakan teknik TF-IDF Vectorizer. Kesamaan antar buku kemudian dihitung menggunakan cosine similarity, sehingga sistem dapat mengidentifikasi buku yang memiliki konten serupa dengan preferensi buku yang telah dibaca atau dinilai positif oleh pengguna.
 
 - Teknik Evaluasi dengan Precision.
 
   Evaluasi sistem rekomendasi dilakukan menggunakan metrik precision, yaitu perbandingan antara jumlah rekomendasi yang relevan dengan jumlah rekomendasi yang diberikan. Precision memberikan gambaran seberapa efektif sistem dalam menyajikan rekomendasi yang relevan untuk pengguna.
 
 ## Data Understanding
-Dataset ini terdiri dari 3 file yaitu: User berisi informasi pengguna dan demografinya, Books berisi inforamsi buku, dan Ratings berisi informasi pengguna yang memberikan rating.
+Dataset ini terdiri dari 3 file yaitu: User berisi informasi pengguna dan demografinya, Books berisi informasi buku, dan Ratings berisi informasi pengguna yang memberikan rating.
 
 Contoh: [Book Recommendation Dataset](https://www.kaggle.com/datasets/arashnic/book-recommendation-dataset).
 
@@ -137,20 +135,40 @@ Visualisasi untuk melihat lokasi dengan user paling banyak. Hasilnya menunjukkan
   - Data user yang telah memberi rating lebih dari 100 buku.
   - Data buku yang telah diberi rating lebih dari 200 kali.
 
-- Membangun Matriks
+- Membangun Matriks Utilitas
 
   Membangun matriks utilitas yang menjadi dasar untuk collaborative filtering. Matriks ini menyimpan interaksi (rating) antara pengguna dan buku. Mengubah matriks ke format yang sesuai untuk model rekomendasi, misalnya untuk menghitung kesamaan atau memproses dengan algoritma seperti SVD.
 
   ![image](https://github.com/user-attachments/assets/0d06c056-ceff-450f-b21c-03733d3100c4)
 
+- Konversi menjadi Sparse Matriks
+
+  Membangun matriks utilitas yang menjadi dasar untuk collaborative filtering. Matriks ini menyimpan interaksi (rating) antara pengguna dan buku. Mengubah matriks ke format yang sesuai untuk model rekomendasi, misalnya untuk menghitung kesamaan atau memproses dengan algoritma seperti SVD.
+
 ### Preparation Content-Based Filtering
 
 - Filter Data
 
-Untuk pendekatan Content-Based Filtering akan digunakan 1000 sample data dari dataframe books, data yang digunakan ialah data author yang telah menulis lebih dari 1 buku.
+  Untuk pendekatan Content-Based Filtering akan digunakan 1000 sample data dari dataframe books, data yang digunakan ialah data author yang telah menulis lebih dari 1 buku.
+
+- Ekstraksi Feature dengan TF-IDF Vectorizer
+
+  Proses ini bertujuan untuk mengekstraksi fitur dari Author dan menghitung bobot TF-IDF untuk setiap kata. Dengan representasi ini, dapat diukur pentingnya setiap kata dalam konteks data secara numerik, sehingga memungkinkan analisis kesamaan antar item berdasarkan fitur teks.
+
+  ![image](https://github.com/user-attachments/assets/14ee766c-94df-494c-ab55-e04cdee5a8aa)
+
+- Melakukan Fit dan Transform TF-IDF
+
+  Langkah ini mengubah data teks Author menjadi bentuk numerik berupa matriks TF-IDF. Matriks ini digunakan untuk merepresentasikan Author dalam ruang fitur berdasarkan kata-kata unik, sehingga dapat digunakan dalam perhitungan kesamaan atau sebagai input untuk algoritma lain.
+
+- Konversi ke Dense Matrix
+
+  Langkah ini bertujuan untuk mengubah representasi matriks TF-IDF dari format hemat memori (sparse) menjadi format lengkap (dense). Hal ini dilakukan untuk mempermudah visualisasi, debugging, atau pemrosesan lebih lanjut.
+
+  ![image](https://github.com/user-attachments/assets/73023327-d64a-44e0-89a6-c737904e7362)
 
 ## Modeling
-Pada tahap ini membuat model untuk sistem rekomendasi. SVD untuk Collaborative Filtering sedangkan TF-IDF Vectorizer untuk Content-Based Filtering.
+Pada tahap ini membuat model untuk sistem rekomendasi. SVD untuk Collaborative Filtering sedangkan Cosine Similarity untuk Content-Based Filtering.
 
 ### SVD untuk Collaborative Filtering
 
@@ -159,7 +177,7 @@ Pada tahap ini membuat model untuk sistem rekomendasi. SVD untuk Collaborative F
   -  Dengan mendekonstruksi matriks utilitas, SVD dapat menemukan pola-pola laten atau hubungan tersembunyi antara pengguna dan item, yang tidak terlihat dalam analisis langsung.
   -  Algoritma ini menghasilkan rekomendasi yang personal karena didasarkan pada pola preferensi pengguna lain dengan kesamaan perilaku.
 
-- Kelebihan SVD:
+- Kekurangan SVD:
   -  SVD membutuhkan jumlah data yang cukup besar untuk menghasilkan dekomposisi matriks yang akurat. Jika data pengguna sedikit, performa akan menurun.
   -  Proses dekomposisi membutuhkan sumber daya komputasi yang besar, terutama untuk dataset dengan ukuran besar.
   -  Tidak dapat memberikan rekomendasi untuk pengguna atau item baru karena metode ini bergantung pada data historis pengguna.
@@ -167,15 +185,11 @@ Pada tahap ini membuat model untuk sistem rekomendasi. SVD untuk Collaborative F
 #### Tahapan SVD
 Pada proses ini terdapat beberapa tahapan penting seperti:
 
-- konversi utility matriks menjadi sparse mattriks, sparse matrix hanya menyimpan nilai non-nol, sehingga lebih hemat memori dan efisien untuk dataset yang besar dan jarang terisi.
 - menentukan jumlah fitur laten sebanyak 50 untuk mengurangi dimensi data.
 - implementasi truncated SVD.
 - rekontruksi matriks kembali menggunakan hasil SVD.
   
   ```
-  # Ubah matriks menjadi sparse matrix
-  sparse_utility_matrix = csr_matrix(utility_matrix_filtered.values)
-  
   # Tentukan jumlah komponen yang ingin dipertahankan
   n_components = 50 
   
@@ -196,43 +210,31 @@ Pada proses ini terdapat beberapa tahapan penting seperti:
   ![image](https://github.com/user-attachments/assets/e9fa9822-a67a-4a25-82e4-7c5f393d928e)
 
 
-### TF-IDF Vectorizer untuk Content-Based Filtering
+### Cosine Similarity untuk Content-Based Filtering
 
-- Kelebihan TF-IDF Vectorizer:
-  -  TF-IDF sangat cocok untuk merepresentasikan data berbasis teks.
-  -  Content-based filtering hanya bergantung pada informasi tentang item dan preferensi pengguna, sehingga tidak memerlukan data dari pengguna lain.
-  -  Hasil dari TF-IDF dapat diinterpretasikan dengan mudah karena berbasis pada frekuensi kemunculan kata dalam dokumen.
+- Kelebihan Cosine Similarity:
+  -  Cosine similarity hanya bergantung pada konten item (fitur) dan tidak memerlukan informasi interaksi pengguna, sehingga bermanfaat dalam tahap awal penerapan sistem rekomendasi.
+  -  Algoritma ini mudah diimplementasikan dan dihitung dengan efisiensi tinggi, terutama jika menggunakan representasi sparse matrix.
+  -  Cosine similarity menghitung sudut antara dua vektor, bukan jarak absolutnya. Ini berarti ukuran data tidak memengaruhi hasil, sehingga cocok untuk data TF-IDF yang berisi nilai bobot relatif.
 
-- Kelebihan TF-IDF Vectorizer:
-  -  Rekomendasi hanya berdasarkan preferensi pengguna sendiri, sehingga tidak memanfaatkan pola dari pengguna lain.
-  -  TF-IDF menghasilkan vektor dengan dimensi yang tinggi jika jumlah fitur (kata) sangat besar, sehingga membutuhkan lebih banyak memori dan waktu komputasi.
-  -  Pendekatan ini hanya mampu merekomendasikan item yang serupa dengan item yang disukai pengguna sebelumnya, sehingga kurang efektif untuk memperkenalkan item baru dengan karakteristik berbeda.
-
-#### Tahapan TF-IDF Vectorizer
+- Kekurangan Cosine Similarity:
+  -  Kinerja cosine similarity sangat bergantung pada kualitas dan representasi fitur (misalnya, TF-IDF). Jika fitur yang digunakan tidak informatif, hasilnya akan kurang akurat.
+  -  Jika pengguna belum memiliki data preferensi atau interaksi dengan item, sistem tidak dapat memberikan rekomendasi yang sepenuhnya personal.
+  
+#### Tahapan Cosine Similarity
 Pada tahap ini terdapat beberapa proses yang harus dilakukan seperti:
 
-- menghitung nilai TF-IDF Author sebagai langkah membangun dasar untuk mengukur
-- mengonversi data teks pada kolom Author menjadi matriks TF-IDF, yang merupakan representasi numerik dari teks yang akan menjadi dasar untuk mengukur kesamaan antar buku berdasarkan Author.
-- menghitung cosine similarity pada matriks.
+- Menghitung similarity, matriks cosine similarity digunakan untuk mengetahui seberapa mirip konten antar buku.
+- Membuat representasi yang mudah dibaca Dengan mengubah array menjadi DataFrame dan menggunakan label judul buku, analisis data menjadi lebih intuitif.
 
   ```
-  # Inisialisasi TfidfVectorizer
-  tf = TfidfVectorizer()
-  
-  # Melakukan perhitungan idf pada data combined
-  tf.fit(filtered_CBF['Author'])
-  
-  # Mapping array dari fitur index integer ke fitur nama
-  tf.get_feature_names_out()
-
-  # Melakukan fit lalu ditransformasikan ke bentuk matrix
-  tfidf_matrix = tf.fit_transform(filtered_CBF['Author'])
-
   # Menghitung cosine similarity pada matrix tf-idf
   cosine_sim = cosine_similarity(tfidf_matrix)
-
+  
   cosine_sim_df = pd.DataFrame(cosine_sim, index=filtered_CBF['Title'], columns=filtered_CBF['Title'])
   ```
+  
+  ![image](https://github.com/user-attachments/assets/67b1eeab-b946-4d4a-8aff-8db0ea231e7d)
 
 - membuat fungsi untuk rekomendasi buku dengan pendekatan Content-Based Filtering dibuat. Fungsi akan memberi rekomendasi berdasarkan input judul buku dan mencari kemiripan berdasarkan Author.
 - Berikut adalah top 5 rekomendasi buku yang mirip Night Watch
@@ -311,4 +313,4 @@ Hasilnya Precision 1.0
 
 ### Kesimpulan
 
-Pendekatan Content-Based Filtering menunjukkan precision yang baik, model berhasil memberikan rekomendasi buku yang mirip berdasarkan nama author. Sedangkan untuk pendekatan Collaborative Filterung, rekomendasi untuk user = 254 menunjukkan precision yang cukup baik dalam memberikan rekomendasi buku yang relevan untuk pengguna, namun ada kemungkinan precision akan lebih baik untuk pengguna yang lain. Penerapan SVD untuk Collaborative Filtering dan TF-IDF Vectorizer untuk Content-Based Filtering memberikan hasil rekomendasi yang cukup baik dan relevan untuk pengguna. Kedua pendekatan tersebut dapat digunakan untuk memberi rekomendasi buku yang lebih relevan untuk pengguna dan dapat memberikan manfaat bagi penerbit untuk meningkatkan penjualan karena dapat memberikan rekomendasi buku yang relevan bagi masing-masing pengguna.
+Pendekatan Content-Based Filtering menunjukkan precision yang baik, model berhasil memberikan rekomendasi buku yang mirip berdasarkan nama author. Sedangkan untuk pendekatan Collaborative Filterung, rekomendasi untuk user = 254 menunjukkan precision yang cukup baik dalam memberikan rekomendasi buku yang relevan untuk pengguna, namun ada kemungkinan precision akan lebih baik untuk pengguna yang lain. Penerapan SVD untuk Collaborative Filtering dan Cosine Similarity untuk Content-Based Filtering memberikan hasil rekomendasi yang cukup baik dan relevan untuk pengguna. Kedua pendekatan tersebut dapat digunakan untuk memberi rekomendasi buku yang lebih relevan untuk pengguna dan dapat memberikan manfaat bagi penerbit untuk meningkatkan penjualan karena dapat memberikan rekomendasi buku yang relevan bagi masing-masing pengguna.
